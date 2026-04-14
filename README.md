@@ -46,10 +46,60 @@ napcat_notify/
 - NapCat 已启动并可正常工作
 - NapCat OneBot 11 `WS 服务端` 已配置完成
 
+## 快速启动
+
+### 1. 克隆项目
+
+```powershell
+git clone https://github.com/nesettle/napcat_notify.git
+cd napcat_notify
+```
+
+### 2. 创建虚拟环境并安装依赖
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+如果 PowerShell 默认禁止脚本执行，可以先运行：
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+```
+
+### 3. 确认 NapCat 已在线
+
+需要保证：
+
+- QQ 已登录
+- NapCat 已启动
+- OneBot 11 `WS 服务端` 已启用
+- 默认监听地址可用：`ws://127.0.0.1:3001`
+
 默认读取的配置文件路径：
 
 ```text
 C:\ProgramData\NapCatQQ Desktop\runtime\NapCatQQ\config\onebot11_3496930386.json
+```
+
+### 4. 先执行 dry-run
+
+```powershell
+python .\notify.py
+```
+
+### 5. 单条试发
+
+```powershell
+python .\notify.py --send --limit 1 --group-id 1042339991
+```
+
+### 6. 全量发送
+
+```powershell
+python .\notify.py --send --group-id 1042339991
 ```
 
 ## 默认行为
@@ -74,38 +124,38 @@ C:\ProgramData\NapCatQQ Desktop\runtime\NapCatQQ\config\onebot11_3496930386.json
 ### 1. 只做 dry-run
 
 ```powershell
-python C:\Users\Theta\napcat_notify\notify.py
+python .\notify.py
 ```
 
 ### 2. 单条试发
 
 ```powershell
-python C:\Users\Theta\napcat_notify\notify.py --send --limit 1
+python .\notify.py --send --limit 1
 ```
 
 ### 3. 全量发送
 
 ```powershell
-python C:\Users\Theta\napcat_notify\notify.py --send
+python .\notify.py --send
 ```
 
 ### 4. 使用群临时会话试发 1 人
 
 ```powershell
-python C:\Users\Theta\napcat_notify\notify.py --send --limit 1 --group-id 1042339991
+python .\notify.py --send --limit 1 --group-id 1042339991
 ```
 
 ### 5. 使用群临时会话全量发送
 
 ```powershell
-python C:\Users\Theta\napcat_notify\notify.py --send --group-id 1042339991
+python .\notify.py --send --group-id 1042339991
 ```
 
 ### 6. 从文件读取名单
 
 ```powershell
-python C:\Users\Theta\napcat_notify\notify.py --input C:\path\to\recipients.csv
-python C:\Users\Theta\napcat_notify\notify.py --input C:\path\to\recipients.xlsx
+python .\notify.py --input C:\path\to\recipients.csv
+python .\notify.py --input C:\path\to\recipients.xlsx
 ```
 
 ## 参数说明
@@ -178,7 +228,7 @@ C:\Users\Theta\napcat_notify\runs\20260414-210831\
 说明普通私聊发不出去。优先改用群临时会话：
 
 ```powershell
-python C:\Users\Theta\napcat_notify\notify.py --send --group-id <群号>
+python .\notify.py --send --group-id <群号>
 ```
 
 ### 2. 连接预检失败
@@ -205,4 +255,3 @@ python C:\Users\Theta\napcat_notify\notify.py --send --group-id <群号>
 - 普通私聊单条试发
 - 群临时会话单条试发
 - 群临时会话全量发送
-
