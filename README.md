@@ -9,6 +9,8 @@
 
 - `notify.py`：批量 QQ 通知
 - `compare_jinshuju.py`：金数据报名比对
+- `start_notify.bat`：一键启动 QQ 通知
+- `start_compare_jinshuju.bat`：一键启动金数据比对
 
 ## 环境要求
 
@@ -64,6 +66,12 @@ python .\notify.py --send --group-id 1042339991
 python .\notify.py --input C:\path\to\recipients.xlsx
 ```
 
+也可以直接双击：
+
+```text
+start_notify.bat
+```
+
 ### 支持能力
 
 - 默认 dry-run
@@ -108,6 +116,12 @@ python .\compare_jinshuju.py `
 python .\compare_jinshuju.py `
   --entries-url "https://jinshuju.net/forms/SnQ2YZ/entries" `
   --qualification-file "C:\Users\Theta\Downloads\成电杯正赛资格名单.xlsx"
+```
+
+也可以直接双击：
+
+```text
+start_compare_jinshuju.bat
 ```
 
 只统计某个时间之后的报名：
