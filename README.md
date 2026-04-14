@@ -1,66 +1,35 @@
 # NapCat Notify
 
-基于 NapCat OneBot 11 `WS 服务端` 的批量私聊通知脚本，适合做名单通知、报名提醒和结果留档。
+用于两类本地自动化任务：
 
-当前脚本默认面向“有资格但未报名单打”的名单，支持：
+- 通过 NapCat OneBot 11 批量发送 QQ 私聊或群临时会话通知
+- 通过浏览器自动化从金数据后台导出表单，再和本地资格名单比对
 
-- 使用内置名单直接发送
-- 从 `CSV/XLSX` 读取收件人
-- `dry-run` 预览消息和对象
-- 单条试发
-- 全量发送
-- 普通私聊发送
-- 基于群号的群临时会话发送
-- 自动输出 `CSV/JSONL` 结果日志
+当前项目包含两个主要脚本：
 
-## 功能概览
-
-- 启动时自动读取 NapCat 的 OneBot 11 配置
-- 自动连接本机 `WS 服务端`
-- 先做 `get_login_info` 预检，确认 bot 在线
-- 支持按姓名个性化消息模板
-- 发送结果自动记录为：
-  - `sent`
-  - `api_failed`
-  - `transport_failed`
-  - `dry_run`
-
-## 目录结构
-
-```text
-napcat_notify/
-├─ notify.py
-├─ README.md
-├─ recipients.sample.csv
-├─ recipients.sample.xlsx
-└─ runs/
-   └─ <timestamp>/
-      ├─ results.csv
-      └─ results.jsonl
-```
+- `notify.py`：批量 QQ 通知
+- `compare_jinshuju.py`：金数据报名比对
 
 ## 环境要求
 
 - Windows
 - Python 3.10+
-- NapCat 已启动并可正常工作
-- NapCat OneBot 11 `WS 服务端` 已配置完成
+- 已安装依赖：`pip install -r requirements.txt`
+- 如果要运行金数据比对脚本，还需要额外安装浏览器内核：
+
+```powershell
+playwright install chromium
+```
 
 ## 快速启动
-
-### 1. 克隆项目
 
 ```powershell
 git clone https://github.com/nesettle/napcat_notify.git
 cd napcat_notify
-```
-
-### 2. 创建虚拟环境并安装依赖
-
-```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
+playwright install chromium
 ```
 
 如果 PowerShell 默认禁止脚本执行，可以先运行：
@@ -69,189 +38,157 @@ pip install -r requirements.txt
 Set-ExecutionPolicy -Scope Process Bypass
 ```
 
-### 3. 确认 NapCat 已在线
+## QQ 通知脚本
 
-需要保证：
+`notify.py` 用于通过 NapCat OneBot 11 向固定名单发送提醒消息。
+
+### NapCat 前置条件
 
 - QQ 已登录
 - NapCat 已启动
 - OneBot 11 `WS 服务端` 已启用
 - 默认监听地址可用：`ws://127.0.0.1:3001`
 
-默认读取的配置文件路径：
+默认读取的 NapCat 配置文件路径：
 
 ```text
 C:\ProgramData\NapCatQQ Desktop\runtime\NapCatQQ\config\onebot11_3496930386.json
 ```
 
-### 4. 先执行 dry-run
+### 常用命令
 
 ```powershell
 python .\notify.py
-```
-
-### 5. 单条试发
-
-```powershell
-python .\notify.py --send --limit 1 --group-id 1042339991
-```
-
-### 6. 全量发送
-
-```powershell
-python .\notify.py --send --group-id 1042339991
-```
-
-## 默认行为
-
-- 默认只执行 `dry-run`
-- 默认使用内置的 21 人名单
-- 默认消息间隔为 `2` 秒
-- 默认不重试失败消息
-- 默认不自动加好友
-- 默认不做失败补救
-
-## 默认消息模板
-
-```text
-{name}同学你好，我是乒协机器人，这边发现你在正赛资格名单中，但单打项目报名表中没有你的信息。请你确认是否参加成电杯单打项目，如果参加，请填写群里的单打报名链接。
-```
-
-脚本会自动把 `{name}` 替换成对应姓名。
-
-## 用法
-
-### 1. 只做 dry-run
-
-```powershell
-python .\notify.py
-```
-
-### 2. 单条试发
-
-```powershell
 python .\notify.py --send --limit 1
-```
-
-### 3. 全量发送
-
-```powershell
-python .\notify.py --send
-```
-
-### 4. 使用群临时会话试发 1 人
-
-```powershell
-python .\notify.py --send --limit 1 --group-id 1042339991
-```
-
-### 5. 使用群临时会话全量发送
-
-```powershell
 python .\notify.py --send --group-id 1042339991
-```
-
-### 6. 从文件读取名单
-
-```powershell
-python .\notify.py --input C:\path\to\recipients.csv
 python .\notify.py --input C:\path\to\recipients.xlsx
 ```
 
-## 参数说明
+### 支持能力
+
+- 默认 dry-run
+- 内置 21 人名单
+- 支持 `CSV/XLSX` 名单导入
+- 支持普通私聊发送
+- 支持群临时会话发送
+- 自动输出 `results.csv` 与 `results.jsonl`
+
+## 金数据报名比对脚本
+
+`compare_jinshuju.py` 会打开金数据后台首页，定位指定表单，进入数据页，导出报名数据，再与本地资格名单对比，输出：
+
+- `qualified_not_registered.csv`
+- `registered_not_qualified.csv`
+- `matched.csv`
+- `qualification_duplicates.csv`
+- `form_duplicates.csv`
+- `summary.json`
+
+如果你已经知道数据页直达链接，也可以跳过首页找表单，直接传 `--entries-url`。
+
+### 工作方式
+
+- 使用持久化浏览器目录保存登录态
+- 第一次运行时，如果未登录金数据，会打开浏览器让你手动登录
+- 登录完成后，脚本会在首页按表单标题寻找对应表单
+- 进入数据页后，自动执行“更多 -> 导出数据 -> 下载”
+- 下载完成后，解析导出文件并与本地资格名单比对
+
+### 常用命令
+
+```powershell
+python .\compare_jinshuju.py `
+  --form-title "成电杯正赛单打项目报名" `
+  --qualification-file "C:\Users\Theta\Downloads\成电杯正赛资格名单.xlsx"
+```
+
+直接使用数据页 URL：
+
+```powershell
+python .\compare_jinshuju.py `
+  --entries-url "https://jinshuju.net/forms/SnQ2YZ/entries" `
+  --qualification-file "C:\Users\Theta\Downloads\成电杯正赛资格名单.xlsx"
+```
+
+只统计某个时间之后的报名：
+
+```powershell
+python .\compare_jinshuju.py `
+  --form-title "成电杯正赛单打项目报名" `
+  --qualification-file "C:\Users\Theta\Downloads\成电杯正赛资格名单.xlsx" `
+  --created-after 2026-04-14
+```
+
+如果导出表中的列名不是默认的 `姓名 / 学院 / QQ号`，可以覆盖：
+
+```powershell
+python .\compare_jinshuju.py `
+  --form-title "成电杯正赛单打项目报名" `
+  --qualification-file "C:\Users\Theta\Downloads\成电杯正赛资格名单.xlsx" `
+  --name-field-label "姓名" `
+  --college-field-label "学院/部门" `
+  --qq-field-label "QQ号"
+```
+
+### 主要参数
 
 | 参数 | 说明 |
 | --- | --- |
-| `--input` | 收件人文件路径，支持 `.csv` / `.xlsx` |
-| `--config` | NapCat OneBot 配置文件路径 |
-| `--output-root` | 结果输出目录根路径 |
-| `--send` | 真正发送消息；不传时只做 `dry-run` |
-| `--limit` | 只处理前 N 条记录 |
-| `--delay` | 每条消息之间的间隔秒数 |
-| `--group-id` | 启用群临时会话发送时使用的群号 |
+| `--form-title` | 金数据后台首页中的表单标题 |
+| `--entries-url` | 金数据数据页直达链接；提供后可跳过首页定位 |
+| `--qualification-file` | 本地资格名单 Excel 文件 |
+| `--name-field-label` | 导出表中的姓名列名，默认 `姓名` |
+| `--college-field-label` | 导出表中的学院列名，默认 `学院` |
+| `--qq-field-label` | 导出表中的 QQ 列名，默认 `QQ号` |
+| `--created-after` | 只统计该时间之后创建的报名 |
+| `--download-format` | 导出格式，支持 `xlsx` / `csv`，默认 `xlsx` |
+| `--profile-dir` | 浏览器持久化目录，默认 `browser_state\jinshuju_profile` |
+| `--output-root` | 输出根目录，默认 `runs` |
+| `--headless` | 无头模式运行；首次登录不建议使用 |
 
-## 输入文件格式
+### 匹配规则
 
-必需列：
+- 优先按 QQ 号匹配
+- 如果一侧 QQ 缺失，回退到 `姓名 + 学院`
+- 姓名会自动去除尾部备注，例如 `王毓远（领队） -> 王毓远`
+- 学院会统一空格与中英文括号
+- 金数据重复提交时，主比较只保留最新一条
 
-- `QQ号`
-- `姓名`
-- `学院`
+### 输出目录
 
-可选列：
-
-- `消息`
-
-规则：
-
-- 如果提供 `消息` 列，则该行优先使用自定义消息
-- 如果不提供 `消息`，则使用默认模板
-- `QQ号` 会自动清洗为纯数字字符串
-
-## 群临时会话说明
-
-如果目标不是好友，但和 bot 在同一个群里，可以提供 `--group-id`。
-
-脚本会先调用 `get_group_member_info` 校验该用户是否仍在该群中，校验通过后再使用带 `group_id` 的 `send_private_msg` 发消息。
-
-如果用户不在该群中，会记录为 `api_failed`，不会继续对该对象发送。
-
-## 输出结果
-
-每次运行都会生成一个时间戳目录，例如：
+每次运行都会在 `runs` 下创建时间戳目录，例如：
 
 ```text
-C:\Users\Theta\napcat_notify\runs\20260414-210831\
+C:\Users\Theta\napcat_notify\runs\compare-20260415-221530\
 ```
 
-输出文件：
+其中至少包含：
 
-- `results.csv`
-- `results.jsonl`
+- `jinshuju_export.xlsx` 或 `jinshuju_export.csv`
+- `matched.csv`
+- `qualified_not_registered.csv`
+- `registered_not_qualified.csv`
+- `qualification_duplicates.csv`
+- `form_duplicates.csv`
+- `summary.json`
 
-字段：
+如果浏览器自动化中途失败，还会额外保存：
 
-- `qq`
-- `name`
-- `college`
-- `mode`
-- `status`
-- `message_id`
-- `error`
-- `sent_at`
-- `message_preview`
+- `jinshuju_debug.html`
+- `jinshuju_debug.png`
 
-## 常见问题
+### 注意事项
 
-### 1. 提示“请先添加对方为好友”
-
-说明普通私聊发不出去。优先改用群临时会话：
-
-```powershell
-python .\notify.py --send --group-id <群号>
-```
-
-### 2. 连接预检失败
-
-先确认：
-
-- NapCat 已启动
-- QQ 已登录
-- `onebot11_3496930386.json` 中的 `websocketServers` 已启用
-- 对应端口正在监听
-
-### 3. 文件能读但中文乱码
-
-`CSV` 建议保存为 `UTF-8 with BOM`。  
-`XLSX` 推荐直接使用 Excel/WPS 保存。
+- 这版不依赖金数据 API，因此不要求升级到支持 API 的订阅套餐
+- 这版依赖金数据后台页面结构；如果页面按钮文案变化，可能需要调整脚本
+- 首次登录必须使用可见浏览器窗口
+- 如果你的表单标题在首页里不唯一，脚本会点击第一个命中的表单
 
 ## 当前验证情况
 
 已验证通过：
 
-- 默认 21 人 `dry-run`
-- `CSV` 输入 `dry-run`
-- `XLSX` 输入 `dry-run`
-- 普通私聊单条试发
-- 群临时会话单条试发
-- 群临时会话全量发送
+- `notify.py` 的 dry-run、单条试发、群临时会话发送
+- `compare_jinshuju.py` 的语法校验
+- 资格名单去重与姓名规范化逻辑
+- 按 QQ 优先、姓名+学院兜底的核心比对逻辑

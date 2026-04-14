@@ -1,4 +1,5 @@
 runs/
+browser_state/
 __pycache__/
 *.pyc
 *.pyo
