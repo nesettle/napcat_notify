@@ -1,5 +1,50 @@
 # NapCat Notify
 
+## Compare + Notify
+
+`compare_and_notify.py` glues the two existing workflows together:
+
+- export the latest Jinshuju entries
+- compare them against the qualification Excel
+- turn the chosen mismatch set into QQ recipients
+- run a NapCat precheck and dry-run by default
+- only send when you add `--send`
+
+Common commands:
+
+```powershell
+python .\compare_and_notify.py `
+  --entries-url "https://jinshuju.net/forms/SnQ2YZ/entries" `
+  --qualification-file "C:\Users\Theta\Downloads\成电杯正赛资格名单.xlsx" `
+  --profile-dir "C:\Users\Theta\napcat_notify\browser_state\jinshuju_profile_qsqni76m" `
+  --group-id 1042339991 `
+  --headless
+```
+
+```powershell
+python .\compare_and_notify.py `
+  --entries-url "https://jinshuju.net/forms/SnQ2YZ/entries" `
+  --qualification-file "C:\Users\Theta\Downloads\成电杯正赛资格名单.xlsx" `
+  --profile-dir "C:\Users\Theta\napcat_notify\browser_state\jinshuju_profile_qsqni76m" `
+  --group-id 1042339991 `
+  --headless `
+  --send
+```
+
+Double-click launcher:
+
+```text
+start_compare_and_notify.bat
+```
+
+Extra outputs:
+
+- `notify_candidates.csv`
+- `notify_skipped.csv`
+- `notify\results.csv`
+- `notify\results.jsonl`
+- `notify\notify_summary.json`
+
 用于两类本地自动化任务：
 
 - 通过 NapCat OneBot 11 批量发送 QQ 私聊或群临时会话通知
